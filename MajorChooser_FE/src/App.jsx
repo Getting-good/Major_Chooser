@@ -5,7 +5,7 @@ import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import MajorChooser from './pages/MajorChooserPage';
 import About from './pages/AboutPage';
 import Updates from './pages/UpdatesPage';
-
+import Navbar from './components/Navbar';
 import ManageQuestion from './pages/ManageQuestionPage';
 import { Link } from "react-router-dom";
 const App = () => {
@@ -13,7 +13,7 @@ const App = () => {
   return (
     <div>
       <Router>
-        
+        <Navbar />
           <Routes>
             <Route path='/' exact element={<MajorChooser />} />
             <Route path='/about' element={<About />} />
