@@ -4,10 +4,7 @@ from models.database import engine, Base, SessionLocal
 from models.major_model import Major
 from models.question_model import Question
 from models.weight_model import QuestionWeight
-from dotenv import load_dotenv
-import os   
 
-load_dotenv()  # Load environment variables from .env file
 
 
 app = FastAPI()
@@ -50,14 +47,3 @@ def get_weights():
     weights = db.query(QuestionWeight).all()
     db.close()
     return weights
-
-
-# # test 창
-# @app.get("/items/{item_id}")
-# def itemfunc(item_id: int):
-#     return {"items id": item_id}
-
-
-# @app.get("/search")
-# def searchfunc(q: str):
-#     return {"keyword": q}
