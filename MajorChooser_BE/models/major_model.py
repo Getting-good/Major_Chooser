@@ -10,5 +10,4 @@ class Major(Base):
     academics = Column(Text)
     experience = Column(Text)
     opportunities = Column(Text)
-
-    base_affinity = Column(Integer, nullable=False, default=10)
+    affinity = Column(Integer, nullable=False, default=10)
