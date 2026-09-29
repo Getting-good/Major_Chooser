@@ -1,29 +1,8 @@
-import React, { useState } from "react";// import useState from react for reselect/pickMaj/ansQuestion
+import React, { useState, useEffect } from "react";// import useState from react for reselect/pickMaj/ansQuestion
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";//using font awesome library
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";//using font awesome library
 import { motion } from "framer-motion";
-import { availableMajors, questionsToAsk } from "../data/majorsData.jsx"; // //importing majors from majorData.js , questions are from localStorage
-
-/**
- * Loads questions by getting them from the localStorage.
- * @returns All questions from storage.
- */
-const loadQuestions = () => {
-  const saved = localStorage.getItem("questions");
-  let questionsObj;
-  if (saved) {
-    questionsObj = JSON.parse(saved);
-  } else {
-    // If storage is empty, call all questions form "majorsData.js"
-    questionsObj = {};
-    questionsToAsk.forEach((q) => {
-      questionsObj[q.id] = { ...q };
-    });
-  }
-  // Object -> Array transform
-  return Object.values(questionsObj).sort((a, b) => a.id - b.id);
-};
-
+import { getMajors,getQuestions,getWeights } from "../api/majorchooserApi";  //Adding API call to get majors from backend
 
 /**
   * logic for Sorting majors list by descending order of affinity scores.
@@ -39,16 +18,55 @@ const getHighestAffinityMajor = (majors) => {
 
 const MajorChooser = () => {
   // available Majors
-  const [majors, setMajors] = useState(availableMajors.map((m) => ({ ...m })));
+  const [majors, setMajors] = useState([]);
+
+  // questions state 
+  const [questions, setQuestions] = useState([]);
+  
+  // weights state
+  const [weights, setWeights] = useState([]);
+
   // Major currently selected by the user
   const [choseMaj, setChoseMaj] = useState(null);
   // Holds the index of the current question
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  // Holds user answers to current questions ,, no need beneath
-  // const [answer, setAnswer] = useState(true);
 
-  // localStorage에서 questions 로드
-  const [questions, setQuestions] = useState(loadQuestions());
+
+  // loading state to handle API calls
+  const [loading, setLoading] = useState(true);
+  //useEffect to load data from backend when component mounts
+  useEffect(() => {
+      loadData(); //API 호출 총 버튼, API를 호출하는 loadData 함수를 useEffect 안에서 호출하여 컴포넌트가 마운트될 때 데이터를 가져오도록 함(딱 한번만 호출되게끔)
+  }, []); // [] means this useEffect will run only once, 리렌더링될때마다 계속 호출되는거 방지, 처음에만 호출되게끔
+
+    /**
+    * API call to load data from backend and set them to state.
+    * @function
+    */
+  const loadData = async () => {
+      try {
+        const majorData = await getMajors();
+        console.log("Loaded majors from backend:", majorData);
+        setMajors(majorData);
+        // console.log("majorData info", majorData.map((m) => m.name));
+
+        const questionData = await getQuestions();
+        console.log("Loaded questions from backend: ",questionData)
+        setQuestions(questionData);
+        // console.log("question id", questionData.map((q) => q.id));
+
+        const weightsData = await getWeights();
+        console.log("Loaded weights from backend: ",weightsData)
+        setWeights(weightsData);
+        
+      } catch (error) {
+        console.error(error);
+        console.log("Failed to load data from backend. Please check the API connection.");
+      } finally {   //loading state false로 바꿔서 로딩 끝났음을 알려줌
+        console.log("API loading finished");
+        setLoading(false);
+      }
+    };
 
 
 
@@ -101,7 +119,6 @@ const MajorChooser = () => {
   };
 
   // Rendering the content based on the state
-  //QUESTION BOX //container
   const renderContent = () => {
     if (questions.length > currentQuestion) {
       return (
@@ -132,12 +149,25 @@ const MajorChooser = () => {
           <h2 className="rec-maj-name">Major Simulation Result:</h2>
           <h3 className="rec-maj-name">{recommendedMajor.name}</h3>
           <h4 className="rec-maj-college">{recommendedMajor.college}</h4>
-          <p className="rec-maj-desc">{recommendedMajor.description.academics}</p>
+          <p className="rec-maj-desc">{recommendedMajor.academics}</p>
           <button className="resetb" onClick={reSelect}> Attempt Again </button>
         </motion.div>
       );
     }
   };
+
+  // Loading state to handle API calls
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (majors.length === 0) {
+    return <div>No majors found.</div>;
+  }
+
+  if (questions.length === 0) {
+    return <div>No questions found.</div>;
+  }
 
   return (
     <div className="container">
@@ -148,7 +178,7 @@ const MajorChooser = () => {
       
       <div className="majs-boxes-container">
         <ul className="majs-list">
-          {availableMajors.map((majorItem) => (
+          {majors.map((majorItem) => ( //availableMajors 대신에 majors 사용
             <motion.li
               key={majorItem.id}
               onClick={() => pickMaj(majorItem)}
