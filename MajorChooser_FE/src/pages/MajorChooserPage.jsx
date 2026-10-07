@@ -76,16 +76,38 @@ const MajorChooser = () => {
     * @function
     * @param {boolean} uinput - True if user answered yes; False for no.
     */
-  const updateAffinities = (uinput, currentQ) => {
-    const updatedMajors = majors.map((m) => {
-      const weight = questions[currentQ]?.weights[m.id - 1] || 0;
-      return {
-        ...m,
-        affinity: uinput ? m.affinity + weight : m.affinity - weight,
-      };
-    });
-    setMajors(updatedMajors);
-  };
+  // const updateAffinities = (uinput, currentQ) => {
+  //   const updatedMajors = majors.map((m) => {
+  //     const weight = questions[currentQ]?.weights[m.id - 1] || 0;
+  //     return {
+  //       ...m,
+  //       affinity: uinput ? m.affinity + weight : m.affinity - weight,
+  //     };
+  //   });
+  //   setMajors(updatedMajors);
+  // };
+ const updateAffinities = (uinput, currentQ) => {
+  const currentQuestion = questions[currentQ];
+
+  const updatedMajors = majors.map((m) => {
+    const weightRecord = weights.find(
+      (w) =>
+        w.question_id === currentQuestion.id &&
+        w.major_id === m.id
+    );
+
+    const weight = Number(weightRecord?.weight ?? 0);
+
+    return {
+      ...m,
+      affinity: uinput
+        ? m.affinity + weight
+        : m.affinity - weight,
+    };
+  });
+
+  setMajors(updatedMajors);
+};
 
     /**
    * Resets quiz state when 'Attempt Again' is clicked.
