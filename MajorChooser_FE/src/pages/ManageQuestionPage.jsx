@@ -1,34 +1,48 @@
 import React, { useState, useEffect } from "react";
-import { availableMajors, questionsToAsk } from "../data/majorsData.jsx";
+import { getMajors,getQuestions, createQuestions, updateQuestions, deleteQuestions } from "../api/majorchooserApi";
 
-const QuestionManager = () => {
-  // Call questions from localStorage
-  const loadQuestions = () => { 
-    const saved = localStorage.getItem("questions");
-    if (saved) return JSON.parse(saved);
+const ManageQuestion = () => {
+  const [questions, setQuestions] = useState([]);
+  const [majors, setMajors] = useState([]);
+  const [expanded, setExpanded] = useState({}); // For toggle 
 
-    const obj = {};
-    questionsToAsk.forEach((q) => {
-      obj[q.id] = { ...q };
-    });
-    return obj;
+  useEffect(() => {
+  loadData();
+  }, []);
+  
+  const loadData = async () => {
+    try {
+      const questionData = await getQuestions();
+      const majorData = await getMajors();
+
+      setQuestions(questionData);
+      setMajors(majorData);
+
+      console.log("Loaded questions:", questionData);
+      console.log("Loaded majors:", majorData);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
   };
 
-  const [questions, setQuestions] = useState(loadQuestions());
-  const [expanded, setExpanded] = useState({}); // For toggle
-
-  //set question when I add question
-  useEffect(() => {
-    localStorage.setItem("questions", JSON.stringify(questions));
-  }, [questions]);
+ 
 
   // updated question text
-  const updatedQuestionText = (id, newText) => {
-    setQuestions((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], text: newText },
-    }));
-  };
+  const updatedQuestionText = async (id, newText) => {
+  try {
+    const updatedQuestion = await updateQuestion(id, {
+      text: newText,
+    });
+
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === id ? updatedQuestion : q
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   // update weight for each question
   const updatedWeight = (id, index, newValue) => {
@@ -46,18 +60,17 @@ const QuestionManager = () => {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const manageQuestion = async () => {
+  try {
+    const newQuestion = await createQuestions({
+      text: "New Question",
+    });
 
-  const manageQuestion = () => {
-    const newId = Math.max(...Object.keys(questions).map(Number)) + 1;
-    setQuestions((prev) => ({
-      ...prev,
-      [newId]: {
-        id: newId,
-        text: "New Question",
-        weights: Array(questionsToAsk[0].weights.length).fill(0),
-      },
-    }));
-  };
+    setQuestions((prev) => [...prev, newQuestion]);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   // delete quesetion + reindex
   const deleteQuestion = (id) => {
@@ -169,4 +182,4 @@ const QuestionManager = () => {
   );
 };
 
-export default QuestionManager;
+export default ManageQuestion;

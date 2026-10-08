@@ -48,3 +48,19 @@ def get_weights():
     weights = db.query(QuestionWeight).all()
     db.close()
     return weights
+
+@app.post("/questions")
+def create_question(question: dict):
+    db = SessionLocal()
+
+    new_question = Question(
+        text=question["text"]
+    )
+
+    db.add(new_question)
+    db.commit()
+    db.refresh(new_question)
+
+    db.close()
+
+    return new_question
