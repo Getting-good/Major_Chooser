@@ -30,7 +30,7 @@ const ManageQuestion = () => {
   // updated question text
   const updatedQuestionText = async (id, newText) => {
   try {
-    const updatedQuestion = await updateQuestion(id, {
+    const updatedQuestion = await updateQuestions(id, {
       text: newText,
     });
 
@@ -60,7 +60,7 @@ const ManageQuestion = () => {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const manageQuestion = async () => {
+  const addQuestion = async () => {
   try {
     const newQuestion = await createQuestions({
       text: "New Question",
@@ -73,19 +73,13 @@ const ManageQuestion = () => {
 };
 
   // delete quesetion + reindex
-  const deleteQuestion = (id) => {
-    const copy = { ...questions };
-    delete copy[id];
-
-    // reindex all whenever questions are corrected
-    const reindexed = {};
-    Object.values(copy)
-      .sort((a, b) => a.id - b.id)
-      .forEach((q, idx) => {
-        reindexed[idx + 1] = { ...q, id: idx + 1 };
-      });
-
-    setQuestions(reindexed);
+  const delQuestion = (id) => {
+   try {
+    deleteQuestions(id);
+    setQuestions((prev) => prev.filter(question => question.id !== id));
+   } catch (error) {
+    console.error(error);
+   }
   };
 
   return (
@@ -93,7 +87,7 @@ const ManageQuestion = () => {
       <h2 style={{ textAlign: "center" }}>Question Manager</h2>
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <button
-          onClick={manageQuestion}
+          onClick={addQuestion}
           style={{
             padding: "8px 16px",
             backgroundColor: "#4CAF50",
@@ -139,7 +133,7 @@ const ManageQuestion = () => {
                 {expanded[q.id] ? "Hide Weights" : "Show Weights"}
               </button>
               <button
-                onClick={() => deleteQuestion(q.id)}
+                onClick={() => delQuestion(q.id)}
                 style={{
                   padding: "5px 10px",
                   border: "none",

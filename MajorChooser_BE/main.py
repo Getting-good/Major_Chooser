@@ -64,3 +64,21 @@ def create_question(question: dict):
     db.close()
 
     return new_question
+
+
+@app.delete("/questions/{questionId}")
+def delete_question(questionId: int):
+    db = SessionLocal()
+    
+    question_to_delete = db.query(Question).filter(Question.id == questionId).first()
+
+    if question_to_delete:
+        db.delete(question_to_delete)
+        db.commit()
+        db.close()
+        return {"message": "Question deleted successfully"}
+    else:
+        db.close()
+        return {"message": "Question not found"}
+
+
